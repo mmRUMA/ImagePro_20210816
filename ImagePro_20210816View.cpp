@@ -52,6 +52,8 @@ BEGIN_MESSAGE_MAP(CImagePro20210816View, CScrollView)
 	ON_COMMAND(ID_GEOMETRY_ZOOMOUT_MEAN_SUB, &CImagePro20210816View::OnGeometryZoomoutMeanSub)
 	ON_COMMAND(ID_GEOMETRY_ZOOMOUT_AVG_FILTER, &CImagePro20210816View::OnGeometryZoomoutAvgFilter)
 	ON_COMMAND(ID_GEOMETRY_ROTATE, &CImagePro20210816View::OnGeometryRotate)
+	ON_COMMAND(ID_GEOMETRY_MIRROR, &CImagePro20210816View::OnGeometryMirror)
+	ON_COMMAND(ID_GEOMETRY_FLIP, &CImagePro20210816View::OnGeometryFlip)
 END_MESSAGE_MAP()
 
 // CImagePro20210816View 생성/소멸
@@ -1197,7 +1199,7 @@ void CImagePro20210816View::OnGeometryZoomoutAvgFilter()
 	// 메모리 반환
 	if (pDoc->gResultImg != NULL)
 	{
-		for (int i = 0; i < pDoc->gImageHeight; i++)
+		for (i = 0; i < pDoc->gImageHeight; i++)
 			free(pDoc->gResultImg[i]);
 		free(pDoc->gResultImg);
 	}
@@ -1208,7 +1210,7 @@ void CImagePro20210816View::OnGeometryZoomoutAvgFilter()
 	// 메모리 할당
 	pDoc->gResultImg = (unsigned char**)malloc(pDoc->gImageHeight * sizeof(unsigned char*));
 
-	for (int i = 0; i < pDoc->gImageHeight; i++)
+	for (i = 0; i < pDoc->gImageHeight; i++)
 		pDoc->gResultImg[i] = (unsigned char*)malloc(pDoc->gImageWidth * pDoc->depth);
 
 	// 전방향 사상
@@ -1258,7 +1260,7 @@ void CImagePro20210816View::OnGeometryRotate()
 	CImagePro20210816Doc* pDoc = GetDocument();
 	CAngleDialog dlg;
 
-	int x, y, i, j;
+	int x, y, i;
 
 	int angle = -45; // degree
 	float radian;
@@ -1283,7 +1285,7 @@ void CImagePro20210816View::OnGeometryRotate()
 	// 메모리 반환
 	if (pDoc->gResultImg != NULL)
 	{
-		for (int i = 0; i < pDoc->gImageHeight; i++)
+		for (i = 0; i < pDoc->gImageHeight; i++)
 			free(pDoc->gResultImg[i]);
 		free(pDoc->gResultImg);
 	}
@@ -1294,7 +1296,7 @@ void CImagePro20210816View::OnGeometryRotate()
 	// 메모리 할당
 	pDoc->gResultImg = (unsigned char**)malloc(pDoc->gImageHeight * sizeof(unsigned char*));
 
-	for (int i = 0; i < pDoc->gImageHeight; i++)
+	for (i = 0; i < pDoc->gImageHeight; i++)
 		pDoc->gResultImg[i] = (unsigned char*)malloc(pDoc->gImageWidth * pDoc->depth);
 
 	xdiff = (pDoc->gImageWidth - pDoc->imageWidth) / 2;
@@ -1332,4 +1334,50 @@ void CImagePro20210816View::OnGeometryRotate()
 				}
 			}
 		}
+}
+
+
+void CImagePro20210816View::OnGeometryMirror()
+{
+	CImagePro20210816Doc* pDoc = GetDocument();
+
+	int x, y;
+
+	for (y = 0; y < pDoc->imageHeight; y++)
+		for (x = 0; x < pDoc->imageWidth; x++)
+		{
+			if (pDoc->depth == 1)
+				pDoc->resultImg[y][x] = pDoc->inputImg[y][pDoc->imageWidth - 1 - x];
+			else
+			{
+				pDoc->resultImg[y][3 * x] = pDoc->inputImg[y][3 * (pDoc->imageWidth - 1 - x)];
+				pDoc->resultImg[y][3 * x + 1] = pDoc->inputImg[y][3 * (pDoc->imageWidth - 1 - x) + 1];
+				pDoc->resultImg[y][3 * x + 2] = pDoc->inputImg[y][3 * (pDoc->imageWidth - 1 - x) + 2];
+			}
+		}
+
+	Invalidate();
+}
+
+
+void CImagePro20210816View::OnGeometryFlip()
+{
+	CImagePro20210816Doc* pDoc = GetDocument();
+
+	int x, y;
+
+	for (y = 0; y < pDoc->imageHeight; y++)
+		for (x = 0; x < pDoc->imageWidth; x++)
+		{
+			if (pDoc->depth == 1)
+				pDoc->resultImg[pDoc->imageHeight  -1 - y][x] = pDoc->inputImg[y][x];
+			else
+			{
+				pDoc->resultImg[pDoc->imageHeight - 1 - y][3 * x] = pDoc->inputImg[y][3 * x];
+				pDoc->resultImg[pDoc->imageHeight - 1 - y][3 * x + 1] = pDoc->inputImg[y][3 * x + 1];
+				pDoc->resultImg[pDoc->imageHeight - 1 - y][3 * x + 2] = pDoc->inputImg[y][3 * x + 2];
+			}
+		}
+
+	Invalidate();
 }
