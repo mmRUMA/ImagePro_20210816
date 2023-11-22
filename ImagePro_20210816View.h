@@ -77,6 +77,10 @@ public:
 	afx_msg void OnGeometryWarping();
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
+	afx_msg void OnAviView();
+	bool bAVIMode;
+	CString aviFileName;
+	void LoadAVIFile(CDC* pDC);
 };
 
 #ifndef _DEBUG  // ImagePro_20210816View.cpp의 디버그 버전

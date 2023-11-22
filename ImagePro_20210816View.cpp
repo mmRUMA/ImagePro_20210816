@@ -57,14 +57,14 @@ BEGIN_MESSAGE_MAP(CImagePro20210816View, CScrollView)
 	ON_COMMAND(ID_GEOMETRY_WARPING, &CImagePro20210816View::OnGeometryWarping)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_LBUTTONUP()
+	ON_COMMAND(ID_AVI_View, &CImagePro20210816View::OnAviView)
 END_MESSAGE_MAP()
 
 // CImagePro20210816View 생성/소멸
 
 CImagePro20210816View::CImagePro20210816View() noexcept
 {
-	// TODO: 여기에 생성 코드를 추가합니다.
-
+	bAVIMode = false;
 }
 
 CImagePro20210816View::~CImagePro20210816View()
@@ -86,6 +86,15 @@ void CImagePro20210816View::OnDraw(CDC* pDC)
 	CImagePro20210816Doc* pDoc = GetDocument();
 	ASSERT_VALID(pDoc);
 	if (!pDoc) return;
+
+	if (bAVIMode)
+	{
+		// 재생
+		LoadAVIFile(pDC);
+
+		bAVIMode = false;
+		return;
+	}
 
 	int x, y;
 
@@ -1532,7 +1541,7 @@ void CImagePro20210816View::OnLButtonUp(UINT nFlags, CPoint point)
 
 	rpen.CreatePen(PS_SOLID, 0, RGB(255, 0, 0));
 	pDC->SelectObject(&rpen);
-
+	 
 	pDC->MoveTo(mpos_start);
 	pDC->LineTo(mpos_end);
 	ReleaseDC(pDC);
@@ -1557,4 +1566,23 @@ void CImagePro20210816View::OnLButtonUp(UINT nFlags, CPoint point)
 	mctrl_dest.Qy = mpos_end.y;
 
 	CScrollView::OnLButtonUp(nFlags, point);
+}
+
+
+void CImagePro20210816View::OnAviView()
+{
+	CFileDialog dlg(true, "", "", OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "AVI파일(*.avi) | *.avi | 모든 파일 | *.* |");
+
+	if (dlg.DoModal() == IDOK)
+	{
+		aviFileName = dlg.GetPathName();
+		bAVIMode = true;
+		Invalidate();
+	}
+}
+
+
+void CImagePro20210816View::LoadAVIFile(CDC* pDC)
+{
+	// TODO: 여기에 구현 코드 추가.
 }
