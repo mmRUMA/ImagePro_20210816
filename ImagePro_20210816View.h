@@ -74,6 +74,9 @@ public:
 	afx_msg void OnGeometryRotate();
 	afx_msg void OnGeometryMirror();
 	afx_msg void OnGeometryFlip();
+	afx_msg void OnGeometryWarping();
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 };
 
 #ifndef _DEBUG  // ImagePro_20210816View.cpp의 디버그 버전

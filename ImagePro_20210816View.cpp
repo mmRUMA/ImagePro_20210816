@@ -54,6 +54,9 @@ BEGIN_MESSAGE_MAP(CImagePro20210816View, CScrollView)
 	ON_COMMAND(ID_GEOMETRY_ROTATE, &CImagePro20210816View::OnGeometryRotate)
 	ON_COMMAND(ID_GEOMETRY_MIRROR, &CImagePro20210816View::OnGeometryMirror)
 	ON_COMMAND(ID_GEOMETRY_FLIP, &CImagePro20210816View::OnGeometryFlip)
+	ON_COMMAND(ID_GEOMETRY_WARPING, &CImagePro20210816View::OnGeometryWarping)
+	ON_WM_LBUTTONDOWN()
+	ON_WM_LBUTTONUP()
 END_MESSAGE_MAP()
 
 // CImagePro20210816View 생성/소멸
@@ -1255,6 +1258,7 @@ void CImagePro20210816View::OnGeometryZoomoutAvgFilter()
 
 #define PI 3.1416926521
 #include "CAngleDialog.h"
+
 void CImagePro20210816View::OnGeometryRotate()
 {
 	CImagePro20210816Doc* pDoc = GetDocument();
@@ -1380,4 +1384,177 @@ void CImagePro20210816View::OnGeometryFlip()
 		}
 
 	Invalidate();
+}
+
+
+typedef struct
+{
+	int Px;
+	int Py;
+	int Qx;
+	int Qy;
+} control_line;
+
+control_line mctrl_src = { 100, 100, 150, 150 };
+control_line mctrl_dest = { 100, 100, 200, 200 };
+
+void CImagePro20210816View::OnGeometryWarping()
+{
+	CImagePro20210816Doc* pDoc = GetDocument();
+
+	control_line src_lines[5] = { {100, 100, 150, 150},
+												{0, 0, pDoc->imageWidth - 1, 0},
+												{pDoc->imageWidth - 1, 0, pDoc->imageWidth - 1, pDoc->imageHeight - 1},
+												{pDoc->imageWidth - 1, pDoc->imageHeight - 1, 0,  pDoc->imageHeight - 1},
+												{0,  pDoc->imageHeight - 1, 0, 0} };
+	control_line dest_lines[5] = { {100, 100, 200, 200},
+												{0, 0, pDoc->imageWidth - 1, 0},
+												{pDoc->imageWidth - 1, 0, pDoc->imageWidth - 1, pDoc->imageHeight - 1},
+												{pDoc->imageWidth - 1, pDoc->imageHeight - 1, 0,  pDoc->imageHeight - 1},
+												{0,  pDoc->imageHeight - 1, 0, 0} };
+
+	src_lines[0] = mctrl_src;
+	dest_lines[0] = mctrl_dest;
+
+	double u; // 수직 교차점의 위치
+	double h; // 제어선으로부터 픽셀의 수직 변위
+	double d; // 제어선과 픽셀 사이의 거리
+	double tx, ty; // 결과 영상 픽셀에 대응되는 입력 영상 픽셀 사이의 변위의 합
+	double xp, yp; // 각 제어선에 대해 계산된 입력 영상의 대응되는 픽셀 위치
+
+	double weight; // 각 제어선의 가중치
+	double totalWeight; // 가중치의 합
+
+	double a = 0.001;
+	double b = 2.0;
+	double p = 0.75;
+
+	int x1, x2, y1, y2;
+	int src_x1, src_x2, src_y1, src_y2;
+	double src_line_length, dest_line_length;
+
+	int num_lines = 5; // 제어선의 수
+	int line;
+	int x, y;
+	int src_x, src_y;
+
+	int last_row = pDoc->imageHeight - 1;
+	int last_col = pDoc->imageWidth - 1;
+
+	// 출력 영상의 각 픽셀에 대하여
+	for (y = 0; y < pDoc->imageHeight; y++)
+	{
+		for (x = 0; x < pDoc->imageWidth; x++)
+		{
+			totalWeight = 0.0;
+			tx = 0.0;
+			ty = 0.0;
+
+			// 각 제어선에 대하여
+			for (line = 0; line < num_lines; line++)
+			{
+				x1 = dest_lines[line].Px;
+				y1 = dest_lines[line].Py;
+				x2 = dest_lines[line].Qx;
+				y2 = dest_lines[line].Qy;
+
+				dest_line_length = sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+
+				// 수직 교차점의 위치 및 픽셀의 수직 변위 계산
+				u = (double) ((x - x1) * (x2 - x1) + (y - y1) * (y2 - y1)) / (double) ((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+				h = (double)((y - y1) * (x2 - x1) - (x - x1) * (y2 - y1)) / dest_line_length;
+
+				// 제어선과 픽셀 사이의 거리 계산
+				if (u < 0) d = sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1));
+				else if (u > 1) d = sqrt((x - x2) * (x - x2) + (y - y2) * (y - y2));
+				else d = fabs(h);
+
+				src_x1 = src_lines[line].Px;
+				src_y1 = src_lines[line].Py;
+				src_x2 = src_lines[line].Qx;
+				src_y2 = src_lines[line].Qy;
+
+				src_line_length = sqrt((src_x2 - src_x1) * (src_x2 - src_x1) + (src_y2 - src_y1) * (src_y2 - src_y1));
+
+				// 입력 영상에서의 대응 픽셀 위치 계산
+				xp = src_x1 + u * (src_x2 - src_x1) - h * (src_y2 - src_y1) / src_line_length;
+				yp = src_y1 + u * (src_y2 - src_y1) + h * (src_x2 - src_x1) / src_line_length;
+
+				// 제어선에 대한 가중치 계산
+				weight = pow(pow(dest_line_length, p) / (a + d), b);
+
+				// 대응 픽셀과의 변위 계산
+				tx += (xp - x) * weight;
+				ty += (yp - y) * weight;
+				totalWeight += weight;
+			}
+
+			src_x = x + (tx / totalWeight);
+			src_y = y + (ty / totalWeight);
+
+			// 영상의 경계를 벗어나는지 검사
+			if (src_x < 0) src_x = 0;
+			if (src_x > last_col) src_x = last_col;
+			if (src_y < 0) src_y = 0;
+			if (src_y > last_row) src_y = last_row;
+
+			if (pDoc->depth == 1)
+				pDoc->resultImg[y][x] = pDoc->inputImg[src_y][src_x];
+			else
+			{
+				pDoc->resultImg[y][3 * x] = pDoc->inputImg[src_y][3 * src_x];
+				pDoc->resultImg[y][3 * x + 1] = pDoc->inputImg[src_y][3 * src_x + 1];
+				pDoc->resultImg[y][3 * x + 2] = pDoc->inputImg[src_y][3 * src_x + 2];
+			}
+		}
+	}
+
+	Invalidate();
+}
+
+
+CPoint mpos_start, mpos_end;
+
+void CImagePro20210816View::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	mpos_start = point;
+
+	CScrollView::OnLButtonDown(nFlags, point);
+}
+
+
+void CImagePro20210816View::OnLButtonUp(UINT nFlags, CPoint point)
+{
+	mpos_end = point;
+
+	CDC* pDC = GetDC();
+	CPen rpen;
+
+	rpen.CreatePen(PS_SOLID, 0, RGB(255, 0, 0));
+	pDC->SelectObject(&rpen);
+
+	pDC->MoveTo(mpos_start);
+	pDC->LineTo(mpos_end);
+	ReleaseDC(pDC);
+
+	int Ax = mpos_start.x;
+	int Ay = mpos_start.y;
+	int Bx = mpos_end.x;
+	int By = mpos_end.y;
+
+	if (Ax < Bx) mctrl_src.Px = Ax - (Bx - Ax) / 2;
+	else mctrl_src.Px = Ax + (Ax - Bx) / 2;
+	if (Ay < By) mctrl_src.Py = Ay - (By - Ay) / 2;
+	else mctrl_src.Py = Ay + (Ay - By) / 2;
+
+	mctrl_dest.Px = mctrl_src.Px;
+	mctrl_dest.Py = mctrl_src.Py;
+
+	mctrl_src.Qx = mpos_start.x;
+	mctrl_src.Qy = mpos_start.y;
+
+	mctrl_dest.Qx = mpos_end.x;
+	mctrl_dest.Qy = mpos_end.y;
+
+	CScrollView::OnLButtonUp(nFlags, point);
 }
