@@ -418,6 +418,8 @@ void CImagePro20210816View::OnPixelTwoImageAdd()
 
 	LoadTwoImage();
 
+	if (pDoc->inputImg2 == NULL) return;
+
 	int x, y, value;
 
 	for (y = 0; y < pDoc->imageHeight; y++)
@@ -440,6 +442,8 @@ void CImagePro20210816View::OnPixelTwoImageSub()
 	if (pDoc->inputImg == NULL) return;
 
 	LoadTwoImage();
+
+	if (pDoc->inputImg2 == NULL) return;
 
 	int x, y, value;
 
@@ -1571,7 +1575,7 @@ void CImagePro20210816View::OnLButtonUp(UINT nFlags, CPoint point)
 
 void CImagePro20210816View::OnAviView()
 {
-	CFileDialog dlg(true, "", "", OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "AVI파일(*.avi) | *.avi | 모든 파일 | *.* |");
+	CFileDialog dlg(true, "", "", OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "AVI파일(*.avi) |*.avi| 모든 파일 |*.*||");
 
 	if (dlg.DoModal() == IDOK)
 	{
@@ -1582,7 +1586,59 @@ void CImagePro20210816View::OnAviView()
 }
 
 
+#include <vfw.h>
+
 void CImagePro20210816View::LoadAVIFile(CDC* pDC)
 {
-	// TODO: 여기에 구현 코드 추가.
+	int x, y;
+
+	PAVIFILE pavi;
+	AVIFILEINFO fi;
+	int stm;
+	PAVISTREAM pstm = NULL;
+	AVISTREAMINFO si;
+	PGETFRAME pfrm = NULL;
+	int frame;
+	LPBITMAPINFOHEADER pbmih;
+	unsigned char* image;
+
+	AVIFileInit();
+	AVIFileOpen(&pavi, aviFileName, OF_READ | OF_SHARE_DENY_NONE, NULL);
+	AVIFileInfo(pavi, &fi, sizeof(AVIFILEINFO));
+
+	for (stm = 0; stm < fi.dwStreams; stm++)
+	{
+		AVIFileGetStream(pavi, &pstm, 0, stm);
+		AVIStreamInfo(pstm, &si, sizeof(AVISTREAMINFO));
+
+		if (si.fccType == streamtypeVIDEO)
+		{
+			pfrm = AVIStreamGetFrameOpen(pstm, NULL);
+
+			for (frame = 0; frame < fi.dwLength; frame++)
+			{
+				pbmih = (LPBITMAPINFOHEADER)AVIStreamGetFrame(pfrm, frame);
+				if (!pbmih) continue;
+
+				image = (unsigned char*)((LPSTR)pbmih + (WORD)pbmih->biSize);
+
+				/*
+				for (y = 0; y < fi.dwHeight; y++)
+					for (x = 0; x < fi.dwWidth; x++)
+					{
+						pDC->SetPixel(x, fi.dwHeight - 1 - y, RGB(image[3 * (y * fi.dwWidth + x) + 2],
+																					 image[3 * (y * fi.dwWidth + x) + 1],
+														 							 image[3 * (y * fi.dwWidth + x)]));
+					}
+				*/
+				SetDIBitsToDevice(pDC->GetSafeHdc(), 0, 0, fi.dwWidth, fi.dwHeight, 0, 0, 0, fi.dwWidth, image, (BITMAPINFO *)pbmih, DIB_RGB_COLORS);
+				Sleep(33);
+			}
+		}
+	}
+
+	AVIStreamGetFrameClose(pfrm);
+	AVIStreamRelease(pstm);
+	AVIFileRelease(pavi);
+	AVIFileExit();
 }
