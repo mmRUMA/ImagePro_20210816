@@ -608,7 +608,7 @@ void CImagePro20210816View::DetectEdge(unsigned char** inImg, unsigned char** ou
 		}
 
 	// 메모리 반환
-	for (int i = 0; i < rows; i++)
+	for (i = 0; i < rows; i++)
 	{
 		free(Er[i]);
 		free(Ec[i]);
@@ -1025,7 +1025,7 @@ void CImagePro20210816View::OnGeometryZoominPixelCopy()
 {
 	CImagePro20210816Doc* pDoc = GetDocument();
 
-	int x, y;
+	int x, y, i;
 
 	int xscale = 3;
 	int yscale = 2;
@@ -1033,7 +1033,7 @@ void CImagePro20210816View::OnGeometryZoominPixelCopy()
 	// 메모리 반환
 	if (pDoc->gResultImg != NULL)
 	{
-		for (int i = 0; i < pDoc->gImageHeight; i++)
+		for (i = 0; i < pDoc->gImageHeight; i++)
 			free(pDoc->gResultImg[i]);
 		free(pDoc->gResultImg);
 	}
@@ -1044,7 +1044,7 @@ void CImagePro20210816View::OnGeometryZoominPixelCopy()
 	// 메모리 할당
 	pDoc->gResultImg = (unsigned char**)malloc(pDoc->gImageHeight * sizeof(unsigned char*));
 
-	for (int i = 0; i < pDoc->gImageHeight; i++)
+	for (i = 0; i < pDoc->gImageHeight; i++)
 		pDoc->gResultImg[i] = (unsigned char*)malloc(pDoc->gImageWidth * pDoc->depth);
 
 	for (y=0; y<pDoc->gImageHeight; y++)
@@ -1068,7 +1068,7 @@ void CImagePro20210816View::OnGeometryZoominInterpolation()
 {
 	CImagePro20210816Doc* pDoc = GetDocument();
 
-	int x, y;
+	int x, y, i;
 
 	float xscale = 2.3;
 	float yscale = 1.5;
@@ -1081,7 +1081,7 @@ void CImagePro20210816View::OnGeometryZoominInterpolation()
 	// 메모리 반환
 	if (pDoc->gResultImg != NULL)
 	{
-		for (int i = 0; i < pDoc->gImageHeight; i++)
+		for (i = 0; i < pDoc->gImageHeight; i++)
 			free(pDoc->gResultImg[i]);
 		free(pDoc->gResultImg);
 	}
@@ -1092,7 +1092,7 @@ void CImagePro20210816View::OnGeometryZoominInterpolation()
 	// 메모리 할당
 	pDoc->gResultImg = (unsigned char**)malloc(pDoc->gImageHeight * sizeof(unsigned char*));
 
-	for (int i = 0; i < pDoc->gImageHeight; i++)
+	for (i = 0; i < pDoc->gImageHeight; i++)
 		pDoc->gResultImg[i] = (unsigned char*)malloc(pDoc->gImageWidth * pDoc->depth);
 
 	// 역방향 사상
@@ -1153,7 +1153,7 @@ void CImagePro20210816View::OnGeometryZoomoutSubsampling()
 {
 	CImagePro20210816Doc* pDoc = GetDocument();
 
-	int x, y;
+	int x, y, i;
 
 	int xscale = 3; // 3분의 1
 	int yscale = 2; // 2분의 1
@@ -1161,7 +1161,7 @@ void CImagePro20210816View::OnGeometryZoomoutSubsampling()
 	// 메모리 반환
 	if (pDoc->gResultImg != NULL)
 	{
-		for (int i = 0; i < pDoc->gImageHeight; i++)
+		for (i = 0; i < pDoc->gImageHeight; i++)
 			free(pDoc->gResultImg[i]);
 		free(pDoc->gResultImg);
 	}
@@ -1172,7 +1172,7 @@ void CImagePro20210816View::OnGeometryZoomoutSubsampling()
 	// 메모리 할당
 	pDoc->gResultImg = (unsigned char**)malloc(pDoc->gImageHeight * sizeof(unsigned char*));
 
-	for (int i = 0; i < pDoc->gImageHeight; i++)
+	for (i = 0; i < pDoc->gImageHeight; i++)
 		pDoc->gResultImg[i] = (unsigned char*)malloc(pDoc->gImageWidth * pDoc->depth);
 
 	// 역방향 사상
@@ -1590,7 +1590,7 @@ void CImagePro20210816View::OnAviView()
 
 void CImagePro20210816View::LoadAVIFile(CDC* pDC)
 {
-	int x, y;
+	//int x, y;
 
 	PAVIFILE pavi;
 	AVIFILEINFO fi;
