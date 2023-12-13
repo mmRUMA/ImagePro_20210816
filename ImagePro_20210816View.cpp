@@ -453,6 +453,7 @@ void CImagePro20210816View::OnPixelTwoImageSub()
 			value = abs(pDoc->inputImg[y][x] - pDoc->inputImg2[y][x]);
 			if (value > 64) value = 255;
 			else value = 0;
+			//value = pDoc->inputImg[y][x] - pDoc->inputImg2[y][x];
 			//if (value > 255) value = 255;
 			//else if (value < 0) value = 0;
 			pDoc->resultImg[y][x] = value;
