@@ -233,9 +233,9 @@ void CImagePro20210816Doc::LoadImageFile(CArchive& ar)
 	else
 	{
 		// 파일 읽어서 저장
-		BYTE nu[4 * 3];
+		BYTE nu[4];
 		int widthfile;
-		widthfile = (imageWidth * 8 + 32) / 32 * 4;
+		widthfile = (imageWidth * 3 * 8 + 31) / 32 * 4;
 
 		for (int j = 0; j < imageHeight; j++)
 		{
@@ -255,7 +255,7 @@ void CImagePro20210816Doc::LoadImageFile(CArchive& ar)
 			}
 
 			if ((widthfile - imageWidth) != 0)
-				ar.Read(nu, (widthfile - imageWidth) * depth);
+				ar.Read(nu, (widthfile - imageWidth * depth));
 		}
 	}
 }
@@ -350,9 +350,9 @@ void CImagePro20210816Doc::LoadSecondImageFile(CArchive& ar)
 	else
 	{
 		// 파일 읽어서 저장
-		BYTE nu[4 * 3];
+		BYTE nu[4];
 		int widthfile;
-		widthfile = (imageWidth * 8 + 32) / 32 * 4;
+		widthfile = (imageWidth * 3 * 8 + 31) / 32 * 4;
 
 		for (int j = 0; j < imageHeight; j++)
 		{
@@ -372,7 +372,7 @@ void CImagePro20210816Doc::LoadSecondImageFile(CArchive& ar)
 			}
 
 			if ((widthfile - imageWidth) != 0)
-				ar.Read(nu, (widthfile - imageWidth) * depth);
+				ar.Read(nu, (widthfile - imageWidth * depth));
 		}
 	}
 }
