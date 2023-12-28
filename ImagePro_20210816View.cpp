@@ -1270,7 +1270,7 @@ void CImagePro20210816View::OnGeometryZoomoutAvgFilter()
 }
 
 
-#define PI 3.1416926521
+#define PI 3.141596521
 #include "CAngleDialog.h"
 
 void CImagePro20210816View::OnGeometryRotate()
@@ -1309,7 +1309,7 @@ void CImagePro20210816View::OnGeometryRotate()
 	}
 
 	pDoc->gImageWidth = pDoc->imageHeight * fabs(cos(PI / 2 - radian)) + pDoc->imageWidth * fabs(cos(radian));
-	pDoc->gImageHeight = pDoc->imageHeight * fabs(cos(radian)) + pDoc->gImageWidth * fabs(cos(PI / 2 - radian));
+	pDoc->gImageHeight = pDoc->imageHeight * fabs(cos(radian)) + pDoc->imageWidth * fabs(cos(PI / 2 - radian));
 
 	// 메모리 할당
 	pDoc->gResultImg = (unsigned char**)malloc(pDoc->gImageHeight * sizeof(unsigned char*));
@@ -1323,11 +1323,11 @@ void CImagePro20210816View::OnGeometryRotate()
 	for (y = -ydiff; y < pDoc->gImageHeight - ydiff; y++)
 		for (x = -xdiff; x < pDoc->gImageWidth - xdiff; x++)
 		{
+			src_x = (Hy - y - Cy) * sin(radian) + (x - Cx) * cos(radian) + Cx;
+			src_y = Hy - ((Hy - y - Cy) * cos(radian) - (x - Cx) * sin(radian) + Cy);
+			
 			if (pDoc->depth == 1)
 			{
-				src_x = (Hy - y - Cx) * sin(radian) + (x - Cx) * cos(radian) + Cx;
-				src_y = Hy - ((Hy - y - Cy) * cos(radian) - (x - Cx) * sin(radian) + Cy);
-
 				if (src_x < 0 || src_x > pDoc->imageWidth - 1 || src_y < 0 || src_y > pDoc->imageHeight - 1)
 					pDoc->gResultImg[y + ydiff][x + xdiff] = 255;
 				else
@@ -1335,9 +1335,6 @@ void CImagePro20210816View::OnGeometryRotate()
 			}
 			else
 			{
-				src_x = (Hy - y - Cx) * sin(radian) + (x - Cx) * cos(radian) + Cx;
-				src_y = Hy - ((Hy - y - Cy) * cos(radian) - (x - Cx) * sin(radian) + Cy);
-
 				if (src_x < 0 || src_x > pDoc->imageWidth - 1 || src_y < 0 || src_y > pDoc->imageHeight - 1)
 				{
 					pDoc->gResultImg[y + ydiff][3 * (x + xdiff)] = 255;
@@ -1352,6 +1349,7 @@ void CImagePro20210816View::OnGeometryRotate()
 				}
 			}
 		}
+	Invalidate();
 }
 
 
