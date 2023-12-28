@@ -233,9 +233,9 @@ void CImagePro20210816Doc::LoadImageFile(CArchive& ar)
 	else
 	{
 		// 파일 읽어서 저장
-		BYTE nu[4];
+		BYTE nu[4 * 3];
 		int widthfile;
-		widthfile = (imageWidth * 3 * 8 + 31) / 32 * 4;
+		widthfile = (imageWidth * 8 + 31) / 32 * 4;
 
 		for (int j = 0; j < imageHeight; j++)
 		{
@@ -350,9 +350,9 @@ void CImagePro20210816Doc::LoadSecondImageFile(CArchive& ar)
 	else
 	{
 		// 파일 읽어서 저장
-		BYTE nu[4];
+		BYTE nu[4 * 3];
 		int widthfile;
-		widthfile = (imageWidth * 3 * 8 + 31) / 32 * 4;
+		widthfile = (imageWidth * 8 + 31) / 32 * 4;
 
 		for (int j = 0; j < imageHeight; j++)
 		{
